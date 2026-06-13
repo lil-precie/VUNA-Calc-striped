@@ -33,119 +33,7 @@ jobs:
         with:
           name: coverage
           path: coverage/
-          retention-days: 14name: CI/CD
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  ci:
-    name: Lint & Test Gate
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - run: npm ci
-
-      - run: npm run lint
-
-      # --ci disables watch mode; --coverage writes the coverage/ folder
-      - run: npm test -- --ci --coverage
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage
-          path: coverage/
           retention-days: 14
-
-  docker:
-    name: Container Build & Push
-    runs-on: ubuntu-latest
-    needs: [ci]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    permissions:
-      contents: read
-      packages: write   # needed if you ever switch to GHCR
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Generate Docker-safe repository name
-        id: repo
-        run: |
-          REPO_NAME=$(echo "${{ github.event.repository.name }}" \
-            | tr '[:upper:]' '[:lower:]' \
-            | sed 's/[^a-z0-9._-]/-/g')
-          echo "repo_name=$REPO_NAME" >> "$GITHUB_OUTPUT"
-
-      - uses: docker/setup-buildx-action@v3
-
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          # Layer caching so rebuilds only re-run changed layers
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo.outputs.repo_name }}:cache
-          cache-to:   type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo.outputs.repo_name }}:cache,mode=max
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo.outputs.repo_name }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo.outputs.repo_name }}:${{ github.sha }}
-
-  deploy:
-    name: Deploy via FTP
-    runs-on: ubuntu-latest
-    # ✅ Fixed: must wait for docker to finish before deploying
-    needs: [ci, docker]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    permissions:
-      contents: read
-
-    environment:
-      name: production
-      url: ${{ secrets.PRODUCTION_URL }}   # ✅ Fixed: pull from secrets, not hardcoded
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - run: npm ci
-
-      - run: npm run build
-
-      - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server:     ${{ secrets.FTP_SERVER }}
-          username:   ${{ secrets.FTP_USERNAME }}
-          password:   ${{ secrets.FTP_PASSWORD }}
-          local-dir:  ./dist/
-          server-dir: ./public_html/
-          protocol:   ftps
-          port: 990        # ✅ Fixed: implicit FTPS uses 990, not 21
-          port-mode:  passive
 
   docker:
     name: Container Build & Push
@@ -207,9 +95,6 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
           local-dir: ./dist/
           server-dir: ./public_html/
-          # 🔐 SECURE FIREWALL BYPASS CONFIGURATION
-          protocol: ftps
-          port: 21
-          port-mode: passive
