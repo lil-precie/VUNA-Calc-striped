@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { rmSync, mkdirSync, cpSync } from 'node:fs';
 
 // Wipe prior builds cleanly
@@ -9,5 +8,4 @@ mkdirSync('dist', { recursive: true });
 cpSync('index.html', 'dist/index.html');
 cpSync('assets', 'dist/assets', { recursive: true });
 
-// eslint-disable-next-line no-undef
 console.log('🎉 Production build complete -> dist/');

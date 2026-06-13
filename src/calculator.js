@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // ==========================================
 // 🧠 CALCULATOR CORE MATH ENGINE (TESTABLE)
 // ==========================================
@@ -76,9 +77,8 @@ function processPercent() {
 
     let leftVal;
     try {
-      // Internal execution context allows access to Math properties
       leftVal = eval(normalizeExpression(leftPart));
-    } catch (e) {
+    } catch {
       leftVal = parseFloat(leftPart);
     }
 
@@ -96,18 +96,16 @@ function calculateExpression(expression) {
   try {
     let normalizedExpression = normalizeExpression(expression);
 
-    // Replace "ans" with last result automatically
     normalizedExpression = normalizedExpression.replace(/\bans\b/gi, LAST_RESULT);
 
-    // Evaluated inside this scoped environment where custom functions exist
     let result = eval(normalizedExpression);
-    
+
     if (isNaN(result) || !isFinite(result)) {
       throw new Error("Invalid Math Operation");
     }
 
     return result;
-  } catch (e) {
+  } catch {
     return "Error";
   }
 }
@@ -122,9 +120,9 @@ function evaluateCurrentExpression() {
     LAST_RESULT = result;
     currentExpression = result;
   } else {
-    currentExpression = ""; // reset state on error
+    currentExpression = "";
   }
-  
+
   return result;
 }
 
