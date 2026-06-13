@@ -5,6 +5,7 @@
   "main": "assets/js/script.js",
   "type": "commonjs",
   "scripts": {
+    "start": "node server.js",
     "test": "jest --coverage",
     "lint": "eslint .",
     "build": "node scripts/build.mjs"
