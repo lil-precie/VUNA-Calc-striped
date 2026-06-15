@@ -27,6 +27,8 @@ module.exports = [
         module: 'writable',
         require: 'readonly',
         process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
 
         // Jest globals
         describe: 'readonly',
