@@ -76,7 +76,7 @@ jobs:
 
     environment:
       name: production
-      url: https://YOUR_DOMAIN
+      url: https://precious.vudse26.cloud
 
     steps:
       - uses: actions/checkout@v4
